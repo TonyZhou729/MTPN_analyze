@@ -2257,12 +2257,20 @@ class Information(object):
             #print(self.plotted_parameters)
             #print(self.backup_names)
             if(len(self.to_reorder)>0):
-                # Analyze modification #                
-                
+                # Analyze modification #
+
+                # Add protection for requested reorder names that only exist for the
+                # model considered. This is useful when comparing multiple models with
+                # non-matching parameters.
+                reorder_names = [] 
+                for name in self.to_reorder:
+                    if name in self.ref_names:
+                        reorder_names.append(name)
+
                 # Replace backup names on following line with ref names instead.
                 # This makes it so that derived and changed parameters can be reordered without issue.
-                # Before: indices = [self.backup_names.index(name) for name in self.to_reorder]
-                indices = [self.ref_names.index(name) for name in self.to_reorder]
+                # Before: indices = [self.backup_names.index(name) for name in self.to_reorder]                                
+                indices = [self.ref_names.index(name) for name in reorder_names]
 
                 # End analyze modification #
 
@@ -2280,7 +2288,21 @@ class Information(object):
                     spam[i][:,2:] = spam[i][:,indices+2]
                 # Play the same game independently for plotted_parameters
                 # since these might be a lot fewer
-                indices = [self.plotted_parameters.index(name) for name in self.to_reorder]                 
+               
+                # Analyze modification #
+
+                # Add protection for requested reorder names that only exist for the
+                # model considered. This is useful when comparing multiple models with
+                # non-matching parameters.
+                # Before: indices = [self.plotted_parameters.index(name) for name in self.to_reorder]                 
+                reorder_names = [] 
+                for name in self.to_reorder:
+                    if name in self.plotted_parameters: 
+                        reorder_names.append(name)
+                indices = [self.plotted_parameters.index(name) for name in reorder_names]
+
+                # End analyze modification #
+
                 if(len(indices)>0):
                   
                   # Analyze modification #

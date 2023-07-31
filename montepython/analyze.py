@@ -400,7 +400,7 @@ def compute_posterior(information_instances):
     ref_names = []
     for info in information_instances:
         for index, name in enumerate(info.plotted_parameters):
-            if name not in plotted_parameters:
+            if name not in plotted_parameters:                
                 plotted_parameters.append(name)
                 ref_names.append(info.ref_names[index])
 
@@ -566,12 +566,16 @@ def compute_posterior(information_instances):
                 #
                 # simply the histogram from the chains, with few bins
                 #
+                
+                # Stepped fluid modification #
+                # Remove depreciatted argument "normed"
                 info.hist, info.bin_edges = np.histogram(
                     # TB: without posterior_smoothing it can be nice to increase the
                     # number of bins here.
                     info.chain[:, info.native_index+2], bins=info.bins,
                     #info.chain[:, info.native_index+2], bins=2*info.bins,
-                    weights=info.chain[:, 0], normed=False, density=False)
+                    weights=info.chain[:, 0], density=False)
+                # End stepped fluid modification #
                 info.hist = info.hist/info.hist.max()
                 # Correct for temperature
                 info.hist = info.hist**conf.temperature
@@ -731,12 +735,14 @@ def compute_posterior(information_instances):
                         #
                         # simply the histogram from the chains, weighted by mutiplicity*likelihood
                         #
+                        # Stepped fluid modification #
+                        # Remove depreciatted argument "normed"
                         lkl_mean, _ = np.histogram(
                             info.chain[:, info.native_index+2],
                             bins=info.bin_edges,
-                            normed=False,
                             weights=np.exp(
                                 conf.min_minus_lkl-info.chain[:, 1])*info.chain[:, 0])
+                        # End stepped fluid modification #
                         lkl_mean /= lkl_mean.max()
 
                         # 1D mean likelihood normalised to P_max=1 (second step)
@@ -872,12 +878,14 @@ def compute_posterior(information_instances):
                         #
                         # simply the histogram from the chains, with few bins only
                         #
+                        # Stepped fluid modification #
+                        # Remove depreciatted argument "normed"
                         info.n, info.xedges, info.yedges = np.histogram2d(
                             info.chain[:, info.native_index+2],
                             info.chain[:, info.native_second_index+2],
                             weights=info.chain[:, 0],
-                            bins=(info.bins, info.bins),
-                            normed=False)
+                            bins=(info.bins, info.bins))
+                        # End stepped fluid modification #
                         # Correct for temperature:
                         info.n = info.n**conf.temperature
 
@@ -1676,16 +1684,16 @@ def extract_parameter_names(info):
                     # any difference)), then continue the process of analyzing.
                     if array[3] != 0 or array[5] == 'derived' or array[5] == 'derived_lkl':
                         # The real name is always kept, to have still the class
-                        # names in the covmat
+                        # names in the covmat                        
                         backup_names.append(original)
                         # With the list "to_plot", we can potentially restrict
                         # the variables plotted. If it is empty, though, simply
-                        # all parameters will be plotted.
+                        # all parameters will be plotted.                        
                         if info.to_plot == []:
                             plotted_parameters.append(name)
                         else:
-                            if name in info.to_plot:
-                                plotted_parameters.append(name)
+                            if name in info.to_plot:                                
+                                plotted_parameters.append(name)                        
 
                         # Append to the boundaries array
                         boundaries.append([
@@ -2246,8 +2254,18 @@ class Information(object):
                 self.plotted_parameters.append(key)
                 self.centers = np.append(self.centers,0)
         if hasattr(self, 'to_reorder'):
+            #print(self.plotted_parameters)
+            #print(self.backup_names)
             if(len(self.to_reorder)>0):
-                indices = [self.backup_names.index(name) for name in self.to_reorder]
+                # Analyze modification #                
+                
+                # Replace backup names on following line with ref names instead.
+                # This makes it so that derived and changed parameters can be reordered without issue.
+                # Before: indices = [self.backup_names.index(name) for name in self.to_reorder]
+                indices = [self.ref_names.index(name) for name in self.to_reorder]
+
+                # End analyze modification #
+
                 missing_indices = [x for x in np.arange(len(self.backup_names)) if x not in indices]
                 indices = np.concatenate([indices,missing_indices],dtype=int)
                 self.ref_names = [self.ref_names[i] for i in indices]
@@ -2262,11 +2280,20 @@ class Information(object):
                     spam[i][:,2:] = spam[i][:,indices+2]
                 # Play the same game independently for plotted_parameters
                 # since these might be a lot fewer
-                indices = [self.plotted_parameters.index(name) for name in self.to_reorder]
+                indices = [self.plotted_parameters.index(name) for name in self.to_reorder]                 
                 if(len(indices)>0):
-                  missing_indices = [x for x in np.arange(len(self.plotted_parameters)) if x not in indices]
-                  indices = np.concatenate([indices,missing_indices])
-                  self.plotted_parameters = [self.plotted_parameters[i] for i in indices]
+                  
+                  # Analyze modification #
+
+                  # Added to the following line the dtype="int" argument to prevent the subsequent lines
+                  # from throwing an error when a float data is used as an index.
+                  # Before: missing_indices = np.array([x for x in np.arange(len(self.plotted_parameters)) if x not in indices])
+                  missing_indices = np.array([x for x in np.arange(len(self.plotted_parameters)) if x not in indices], dtype="int")                  
+                  
+                  # End analyze modification #
+                  
+                  indices = np.concatenate([indices,missing_indices])                  
+                  self.plotted_parameters = [self.plotted_parameters[i] for i in indices]                                  
 
     def define_ticks(self):
         """

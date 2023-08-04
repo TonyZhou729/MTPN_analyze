@@ -1,0 +1,1 @@
+ACT_DR6_lensing.data_directory = data.path["data"]

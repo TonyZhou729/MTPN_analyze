@@ -1,1 +1,40 @@
-ACT_DR6_lensing.data_directory = data.path["data"]
+###########################################################
+#                                                         #
+#                Likelihood Options for                   #
+#                 ACT DR6 CMB Lensing                     #
+#                                                         #
+#       If you use this likelihood please include         #
+#               the following references:                 #
+#                                                         #
+#           Qu et al. 2023 (arXiv:2304.05202)             #
+#      Madhavacheril et al. 2023 (arXiv:2304.05203)       #
+#                                                         #
+#         and for any foreground removal options          #
+#         MacCrann et al. 2023 (arXiv:2304.05196)         #
+#                                                         #
+###########################################################
+
+# Path to directory containing clkk bandpowers, binning matrices, covariance matrices etc.
+# Modify the second piece if you move things around or for future versions >v1.1.
+# This is the default path as long as you unzip the .tgz file for ACT DR6 data within the 
+#
+# ..montepython/data/ACT_DR6_lensing/
+#
+# directory.
+ACT_DR6_lensing.data_directory = data.path["data"] + "/ACT_DR6_lensing/v1.1/"
+
+# Specific powerspectrum option. Avalable options are:
+# 1. Default (leave blank)
+# 2. Polarization only (use "polonly")
+# 3. CIB deprojected (use "cibdeproj"), see MacCrann et al. 2023 (arXiv:2304.05196) for details.
+# ACT_DR6_lensing.cl_option = ""
+ACT_DR6_lensing.cl_option = "polonly"
+# ACT_DR6_lensing.cl_option = "cibdeproj"
+
+# \ell range for likelihood comparison. By default the convergence powerspec is divided in 18
+# bins on a log scale. Specify here the min and max of \ell'ss where the data should be compared.
+# Bins with center \ell outside this range will be ignored. 
+# Note that lmin >= 0 and lmax < 3000 is required.
+ACT_DR6_lensing.lmin = 50
+ACT_DR6_lensing.lmax = 1260
+
